@@ -1,47 +1,49 @@
 
-const {
-  listContacts,
-  getContactById,
-  addContact,
-  removeContact,
-  updateContact,
-} = require("../models/contacts");
+const {Contact} = require("../models/contact")
 
 const { HttpError, ctrlWrapper } = require("../helpers");
 
 
-
 const getAll = async (req, res) => {
-    const contacts = await listContacts();
-    res.status(200).json(contacts);
+    const result = await Contact.find({}, "-createAt -updateAt");
+    res.json(result);
 };
 
 const getById = async (req, res) => {
     const { contactId } = req.params;
-    const contact = await getContactById(contactId);
-    if (!contact) {
+    const result = await Contact.findById(contactId);
+    if (!result) {
       throw HttpError(404, "Not found");
     }
-    res.status(200).json(contact);
+    res.status(200).json(result);
 };
 
 const add = async (req, res) => {
-    const contact = await addContact(req.body);
-    res.status(201).json(contact);
+    const result = await Contact.create(req.body);
+    res.status(201).json(result);
 };
 
 const updateById = async (req, res) => {
     const { contactId } = req.params;
-    const contact = await updateContact(contactId, req.body);
-    if (!contact) {
+    const result = await Contact.findByIdAndUpdate(contactId, req.body, {new: true});
+    if (!result) {
       throw HttpError(404, "Not found");
     }
-    res.status(200).json(contact);
+    res.status(200).json(result);
+};
+
+const updateFavorite = async (req, res) => {
+  const { contactId } = req.params;
+  const result = await Contact.findByIdAndUpdate(contactId, req.body, {new: true});
+  if (!result) {
+    throw HttpError(404, "Not found");
+  }
+  res.status(200).json(result);
 };
 
 const deleteById = async (req, res) => {
-    const { contactId } = req.params;
-    const contact = await removeContact(contactId);
+    const {contactId} = req.params;
+    const contact = await Contact.findByIdAndRemove(contactId);
     if (!contact) {
       throw HttpError(404, "Not found");
     }
@@ -53,5 +55,6 @@ module.exports = {
   getById: ctrlWrapper(getById),
   add: ctrlWrapper(add),
   updateById: ctrlWrapper(updateById),
+  updateFavorite: ctrlWrapper(updateFavorite),
   deleteById: ctrlWrapper(deleteById),
 };
