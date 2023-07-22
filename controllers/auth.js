@@ -22,6 +22,7 @@ const register = async (req, res) => {
   res.status(201).json({
     email: newUser.email,
     name: newUser.name,
+    subscription: newUser.subscription,
   });
 };
 
@@ -46,15 +47,20 @@ const login = async (req, res) => {
 
   res.json({
     token,
+    user: {
+      email: user.email,
+      subscription: user.subscription,
+    },
   });
 };
 
 const getCurrent = async (req, res) => {
-  const { email, name } = req.user;
+  const { email, name, subscription } = req.user;
 
   res.json({
     email,
     name,
+    subscription,
   });
 };
 
@@ -62,8 +68,18 @@ const logout = async (req, res) => {
   const { _id } = req.user;
   await User.findByIdAndUpdate(_id, { token: "" });
 
-  res.json({
+  res.status(204).json({
     message: "Logout success",
+  });
+};
+
+const changeSubscription = async (req, res) => {
+  const { _id } = req.user;
+  const { subscription } = req.body;
+  await User.findByIdAndUpdate(_id, { subscription });
+
+  res.json({
+    message: `Your subscription has been changed to ${subscription}`,
   });
 };
 
@@ -72,4 +88,5 @@ module.exports = {
   login: ctrlWrapper(login),
   getCurrent: ctrlWrapper(getCurrent),
   logout: ctrlWrapper(logout),
+  changeSubscription: ctrlWrapper(changeSubscription),
 };

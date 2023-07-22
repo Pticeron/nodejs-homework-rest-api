@@ -6,6 +6,17 @@ const getAll = async (req, res) => {
   const { _id: owner } = req.user;
   const {page =1, limit = 10 } = req.query;
   const skip = (page - 1) * limit;
+
+if(req.query.favorite) {
+  const favorite = req.query.favorite === 'true';
+  const result = await Contact.find({ owner, favorite }, '', {
+    skip,
+    limit,
+  }).populate('owner', 'name email');
+
+  return res.json(result);
+}
+
   const result = await Contact.find({owner}, "-createAt -updateAt", {skip, limit}).populate("owner", "name email");
   res.json(result);
 };
@@ -27,9 +38,7 @@ const add = async (req, res) => {
 
 const updateById = async (req, res) => {
   const { contactId } = req.params;
-  const result = await Contact.findByIdAndUpdate(contactId, req.body, {
-    new: true,
-  });
+  const result = await Contact.findByIdAndUpdate(contactId, req.body, {new: true});
   if (!result) {
     throw HttpError(404, "Not found");
   }
@@ -38,9 +47,8 @@ const updateById = async (req, res) => {
 
 const updateFavorite = async (req, res) => {
   const { contactId } = req.params;
-  const result = await Contact.findByIdAndUpdate(contactId, req.body, {
-    new: true,
-  });
+  if (!req.body) throw HttpError(400, "missing field favorite");
+  const result = await Contact.findByIdAndUpdate(contactId, req.body, {new: true});
   if (!result) {
     throw HttpError(404, "Not found");
   }
